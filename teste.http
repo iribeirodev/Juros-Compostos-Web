@@ -1,0 +1,14 @@
+### Requisição GET para a rota "/"
+GET http://localhost:8080/
+Accept: application/json
+
+### Requisição POST para a rota "/calculo" com um body JSON
+POST http://localhost:8080/calculo
+Content-Type: application/json
+Accept: application/json
+
+{
+  "capital": 1000,
+  "parcelas": 12,
+  "taxa": 5
+}
