@@ -1,0 +1,70 @@
+definitions:
+  main.Entrada:
+    properties:
+      capital:
+        type: number
+      parcelas:
+        type: integer
+      taxa:
+        type: number
+    type: object
+  main.Montante:
+    properties:
+      mes:
+        type: integer
+      montante_acumulado:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: Exemplo de API com Swagger no Gin
+  title: Juros Compostos API
+  version: "1.0"
+paths:
+  /compostos:
+    post:
+      consumes:
+      - application/json
+      description: Recebe valores de entrada e retorna o montante acumulado ao longo
+        do tempo
+      parameters:
+      - description: Valores de entrada para o cálculo
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/main.Entrada'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de montantes calculados por mês
+          schema:
+            items:
+              $ref: '#/definitions/main.Montante'
+            type: array
+        "400":
+          description: Mensagem de erro para entrada inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Calcula juros compostos
+      tags:
+      - Calculo
+  /ping:
+    get:
+      description: Retorna uma resposta "pong" indicando que a API está ativa
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resposta com mensagem 'pong'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Verifica o status da API
+      tags:
+      - HealthCheck
+swagger: "2.0"
