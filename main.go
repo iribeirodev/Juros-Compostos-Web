@@ -12,15 +12,29 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-type Entrada struct {
+type InputJurosCompostos struct {
 	CapitalInicial float32 `json:"capital"`
 	Parcelas       int32   `json:"parcelas"`
 	Taxa           float32 `json:"taxa"`
 }
 
+type InputSimulacaoParcela struct {
+	ValorProduto float64 `json:"valor_produto"`
+	Parcelas     int32   `json:"parcelas"`
+	Taxa         float64 `json:"taxa"`
+}
+
 type Montante struct {
 	Mes int32  `json:"mes"`
 	MA  string `json:"montante_acumulado"`
+}
+
+type Simulacao struct {
+	Mes          int32  `json:"mes"`
+	ValorParcela string `json:"valor_parcela"`
+	JurosPago    string `json:"juros_pago"`
+	Amortizacao  string `json:"amortizacao"`
+	SaldoDevedor string `json:"saldo_devedor"`
 }
 
 // @title Juros Compostos API
@@ -40,7 +54,8 @@ func main() {
 	})
 
 	router.GET("/", ping)
-	router.POST("/compostos", getCalculoCompostos)
+	router.POST("/juros-compostos", getCalculoCompostos)
+	router.POST("/simulacao-parcelas", getSimulacaoParcela)
 
 	router.Run(":8080")
 }
@@ -61,15 +76,15 @@ func ping(c *gin.Context) {
 // Realiza o cálculo de juros compostos com base nos valores de entrada
 // @Summary Calcula juros compostos
 // @Description Recebe valores de entrada e retorna o montante acumulado ao longo do tempo
-// @Tags Calculo
+// @Tags Juros Compostos
 // @Accept json
 // @Produce json
-// @Param input body Entrada true "Valores de entrada para o cálculo"
+// @Param input body InputJurosCompostos true "Valores de entrada para o cálculo"
 // @Success 200 {array} Montante "Lista de montantes calculados por mês"
 // @Failure 400 {object} map[string]string "Mensagem de erro para entrada inválida"
-// @Router /compostos [post]
+// @Router /juros-compostos [post]
 func getCalculoCompostos(c *gin.Context) {
-	var input Entrada
+	var input InputJurosCompostos
 	if err := c.BindJSON(&input); err != nil {
 		log.Printf("Erro ao vincular JSON -> %v", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Entrada inválida"})
@@ -102,4 +117,60 @@ func getCalculoCompostos(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, montantes)
+}
+
+// @Summary Simula o parcelamento de um produto com juros compostos.
+// @Description Esta ação recebe os parâmetros do valor do produto, número de parcelas e taxa de juros, e retorna uma simulação das parcelas, com o valor da parcela, juros pagos, amortização e saldo devedor.
+// @Tags Simulação de Parcelas fixas em um financiamento com juros compostos
+// @Accept json
+// @Produce json
+// @Param input body InputSimulacaoParcela true "Dados de entrada para a simulação"
+// @Success 200 {array} Simulacao "Simulação das parcelas com juros"
+// @Failure 400 {object} map[string]string "Erro de entrada com mensagem explicativa"
+// @Router /simulacao-parcelas [post]
+func getSimulacaoParcela(c *gin.Context) {
+	var input InputSimulacaoParcela
+	if err := c.BindJSON(&input); err != nil {
+		log.Printf("Erro ao vincular JSON -> %v", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Entrada inválida"})
+		return
+	}
+
+	// Valores de entrada
+	if input.ValorProduto <= 0 || input.Parcelas <= 0 || input.Taxa <= 0 {
+		log.Printf("Os valores de entrada devem ser fornecidos e positivos: %v, %v e %v", input.ValorProduto, input.Parcelas, input.Taxa)
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Os valores devem ser positivos"})
+		return
+	}
+
+	var simulacoes []Simulacao
+
+	valorInicial := input.ValorProduto
+	taxaJuros := input.Taxa / 100
+	numeroParcelas := input.Parcelas
+
+	// Valor da parcela fixa
+	valorParcela := valorInicial * (taxaJuros * math.Pow(1+taxaJuros, float64(numeroParcelas))) / (math.Pow(1+taxaJuros, float64(numeroParcelas)) - 1)
+
+	saldoDevedor := valorInicial
+
+	// Cálculo das parcelas
+	for i := 1; i <= int(numeroParcelas); i++ {
+
+		// Juros pagos e amortização
+		jurosPago := saldoDevedor * taxaJuros
+		amortizacao := valorParcela - jurosPago
+
+		saldoDevedor -= amortizacao
+
+		simulacao := Simulacao{Mes: int32(i),
+			ValorParcela: fmt.Sprintf("%.2f", valorParcela),
+			JurosPago:    fmt.Sprintf("%.2f", jurosPago),
+			Amortizacao:  fmt.Sprintf("%.2f", amortizacao),
+			SaldoDevedor: fmt.Sprintf("%.2f", saldoDevedor)}
+
+		simulacoes = append(simulacoes, simulacao)
+	}
+
+	c.JSON(http.StatusOK, simulacoes)
 }

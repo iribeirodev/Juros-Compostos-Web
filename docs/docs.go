@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/compostos": {
+        "/juros-compostos": {
             "post": {
                 "description": "Recebe valores de entrada e retorna o montante acumulado ao longo do tempo",
                 "consumes": [
@@ -25,7 +25,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Calculo"
+                    "Juros Compostos"
                 ],
                 "summary": "Calcula juros compostos",
                 "parameters": [
@@ -35,7 +35,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/main.Entrada"
+                            "$ref": "#/definitions/main.InputJurosCompostos"
                         }
                     }
                 ],
@@ -83,10 +83,56 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/simulacao-parcelas": {
+            "post": {
+                "description": "Esta ação recebe os parâmetros do valor do produto, número de parcelas e taxa de juros, e retorna uma simulação das parcelas, com o valor da parcela, juros pagos, amortização e saldo devedor.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Simulação de Parcelas fixas em um financiamento com juros compostos"
+                ],
+                "summary": "Simula o parcelamento de um produto com juros compostos.",
+                "parameters": [
+                    {
+                        "description": "Dados de entrada para a simulação",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.InputSimulacaoParcela"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Simulação das parcelas com juros",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/main.Simulacao"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Erro de entrada com mensagem explicativa",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
-        "main.Entrada": {
+        "main.InputJurosCompostos": {
             "type": "object",
             "properties": {
                 "capital": {
@@ -100,6 +146,20 @@ const docTemplate = `{
                 }
             }
         },
+        "main.InputSimulacaoParcela": {
+            "type": "object",
+            "properties": {
+                "parcelas": {
+                    "type": "integer"
+                },
+                "taxa": {
+                    "type": "number"
+                },
+                "valor_produto": {
+                    "type": "number"
+                }
+            }
+        },
         "main.Montante": {
             "type": "object",
             "properties": {
@@ -107,6 +167,26 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "montante_acumulado": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.Simulacao": {
+            "type": "object",
+            "properties": {
+                "amortizacao": {
+                    "type": "string"
+                },
+                "juros_pago": {
+                    "type": "string"
+                },
+                "mes": {
+                    "type": "integer"
+                },
+                "saldo_devedor": {
+                    "type": "string"
+                },
+                "valor_parcela": {
                     "type": "string"
                 }
             }
