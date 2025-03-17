@@ -145,9 +145,7 @@ func getSimulacaoParcela(c *gin.Context) {
 
 	var simulacoes []Simulacao
 
-	valorInicial := input.ValorProduto
-	taxaJuros := input.Taxa / 100
-	numeroParcelas := input.Parcelas
+	valorInicial, taxaJuros, numeroParcelas := input.ValorProduto, input.Taxa/100, input.Parcelas
 
 	// Valor da parcela fixa
 	valorParcela := valorInicial * (taxaJuros * math.Pow(1+taxaJuros, float64(numeroParcelas))) / (math.Pow(1+taxaJuros, float64(numeroParcelas)) - 1)
