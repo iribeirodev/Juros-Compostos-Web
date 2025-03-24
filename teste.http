@@ -2,8 +2,12 @@
 GET http://localhost:8080/
 Accept: application/json
 
-### Requisição POST para a rota "/calculo" com um body JSON
-POST http://localhost:8080/calculo
+### Requisição Ping
+GET http://localhost:8080/ping
+Accept: application/json
+
+### Requisição POST para a rota "/juros-compostos" com um body JSON
+POST http://localhost:8080/juros-compostos
 Content-Type: application/json
 Accept: application/json
 
@@ -11,4 +15,15 @@ Accept: application/json
   "capital": 1000,
   "parcelas": 12,
   "taxa": 5
+}
+
+### Requisição POST para a rota "/simulacao-parcelas" com um body JSON
+POST http://localhost:8080/simulacao-parcelas
+Content-Type: application/json
+Accept: application/json
+
+{
+  "valor_produto": 10000,
+  "parcelas": 12,
+  "taxa_anual": 8
 }
