@@ -54,7 +54,7 @@ Content-Type: application/json
 {
   "valor_produto": 10000,
   "parcelas": 12,
-  "taxa": 8
+  "taxa_anual": 8
 }
 ```
 
